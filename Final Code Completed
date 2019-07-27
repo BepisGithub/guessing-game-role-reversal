@@ -1,0 +1,116 @@
+#include <iostream>
+#include <string>
+#include <Windows.h>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <algorithm>
+
+bool runOnceHigh = false;
+bool runOnceLow = false;
+
+void pause() {
+	std::cout << std::endl;
+	std::cin.clear();
+	int x;
+	std::cin >> x;
+}
+
+void guessLowRandomNum(int &pGuess,std::vector<int> &lVector, std::vector<int> &hVector) { //takes in the programs guess and the vector that stores all the guesses that were too low
+	std::cout << "My guess was too low! \n";
+	lVector.push_back(pGuess); //adds the programs guess to the vector that stores guesses that were too low. the logic here is that the program will not generate a new number that is lower than the biggest element in this vector
+	pGuess += 1 + (rand() % 9); //generates a new larger number which is larger by 1 to 10 
+	int biggestVal = *std::max_element(lVector.begin(), lVector.end()); //creates an integer to store the largest value in the low guesses vector
+	if (runOnceHigh&&runOnceLow) {//without this the program would try to read from an empty vector and crash
+		int smallestVal = *std::min_element(hVector.begin(), hVector.end()); //creates an integer to store the smallest value in the high guesses vector
+		while (pGuess >= smallestVal) { //while the randomly generated number is bigger or equal to the smallest element in the high guesses array 
+				pGuess--; //subtract one so the next guess is at least 1 lower
+		}
+		while (pGuess <= biggestVal) { //while the randomly generated number is less than or equal to the biggest element in the low guesses array 
+			pGuess++;
+		}
+	}
+	else {
+		while (pGuess <= biggestVal) { //while the randomly generated number is less than or equal to the biggest element in the low guesses array
+			pGuess++;
+		}
+	}
+}
+
+void guessHighRandomNum(int &pGuess, std::vector<int> &lVector,std::vector<int> &hVector) { //takes in the programs guess and the vector that stores all the guesses that were too high
+	std::cout << "My guess was too high! \n";
+	hVector.push_back(pGuess); //adds the programs guess to the vector that stores guesses that were too high. the logic here is that the program will not generate a new number that is bigger than the smallest element in this vector
+	pGuess = pGuess - (1 + (rand() % 9)); //generates a new smaller number which is larger by 1 to 10 
+	int smallestVal = *std::min_element(hVector.begin(), hVector.end()); //creates an integer to store the smallest value in the high guesses vector
+	if (runOnceHigh&&runOnceLow) { //without this the program would try to read from an empty vector and crash
+		int biggestVal = *std::max_element(lVector.begin(), lVector.end()); //creates an integer to store the largest value in the low guesses vector
+		while (pGuess > smallestVal) { //while the randomly generated number is bigger than the smallest element in the high guesses array
+			pGuess--;
+		}
+		while (pGuess <= biggestVal) { //while the randomly generated number is less than or equal to the biggest element in the low guesses array 
+			pGuess++;
+		}
+	}
+	else {
+		while (pGuess >= smallestVal) {
+			pGuess--;
+		}
+	}
+}
+
+int main() {
+	std::vector<int> guessesTooLow; //vector to store all the values that were lower than the guess
+	std::vector<int> guessesTooHigh; //vector to store all the values that were higher than the guess
+	int programsGuess; //integer to store the programs guess on what the users number is
+	unsigned char userAnswer; //input variable
+	bool isCorrect = false; //true to indicate success
+	srand(time(0)); //random seed for rand()
+	programsGuess = rand()%100; //generate a random number from 0-99
+	std::cout << "Ok think of a random number \n";
+	while (true) { //infinite loop
+		if (isCorrect==false) { //while the program has not correctly guessed the answer
+			std::cout << "My guess is " << programsGuess << std::endl; //outputting the guess
+			std::cout << "If I was correct type c, if my guess was lower than the number you were thinking of type l and if it was higher type h " << std::endl;
+			std::cin >> userAnswer; 
+			switch (userAnswer) {
+			case 'c':
+				isCorrect = true;
+				std::cout << "Nice, the number you were thinking of was " << programsGuess << std::endl;
+				break;
+			case 'l':
+				runOnceLow = true;
+				guessLowRandomNum(programsGuess, guessesTooLow, guessesTooHigh); //guess was too low 
+				break;
+			case 'h':
+				runOnceHigh = true;
+				guessHighRandomNum(programsGuess, guessesTooLow, guessesTooHigh); //guess was too high
+				break;
+			default:
+				std::cout << "Not a valid input!" << std::endl;
+			}
+		}
+		else {
+			std::cout << "Congrats you have won the game ! \n";
+			std::cout << "Would you like to try again? y or n \n";
+			std::cin >> userAnswer; 
+			
+			switch (userAnswer) {
+			case 'y':
+				//resetting all the variables
+				isCorrect = false;
+				runOnceHigh = false;
+				runOnceLow = false;
+				programsGuess = rand() % 100;
+				guessesTooLow.clear();
+				guessesTooHigh.clear();
+				system("CLS");
+				break;
+			default:
+				std::cout << "ok have a good day \n";
+				Sleep(5000);
+				exit(-1);
+			}
+		}
+	}
+	pause();
+}
